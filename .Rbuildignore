@@ -1,0 +1,9 @@
+# Ripser
+.clang-format
+CONTRIBUTING.txt
+COPYING.txt
+Makefile
+
+# R project
+^ripser\.Rproj$
+^\.Rproj\.user$

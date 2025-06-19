@@ -1,6 +1,6 @@
 Package: ripserq
 Type: Package
-Title: Ports the Ripser program to R with minimal package structure.
+Title: Ports the Ripser program to R with minimal package structure
 Version: 1.0
 Date: 2025-06-19
 Authors@R: person("Your", "Name", role = c("aut", "cre"),

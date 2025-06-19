@@ -43,6 +43,9 @@
 
 //#define USE_ROBINHOOD_HASHMAP
 
+// ripserq: R does not tolerate use of `exit()`.
+//#define COMMAND_LINE_IO
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -1157,6 +1160,9 @@ compressed_lower_distance_matrix read_file(std::istream& input_stream, const fil
 	}
 }
 
+// ripserq: R does not tolerate use of `exit()`.
+#ifdef COMMAND_LINE_IO
+
 void print_usage_and_exit(int exit_code) {
   // ripserq
 	Rcpp::Rcerr
@@ -1318,7 +1324,9 @@ int main(int argc, char** argv) {
 	}
 }
 
-//' @export
+// ripserq
+#endif
+
 // [[Rcpp::export()]]
 Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector &dataset, int dim, double thresh, float ratio, int p) {
   std::vector<value_t> distances(dataset.begin(), dataset.end());

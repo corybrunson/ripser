@@ -4,7 +4,7 @@
 \name{ripserq-package}
 \alias{ripserq}
 \alias{ripserq-package}
-\title{ripserq: Ports the Ripser program to R with minimal package structure.}
+\title{ripserq: Ports the Ripser program to R with minimal package structure}
 \description{
 More about what it does (maybe more than one line).
 }
