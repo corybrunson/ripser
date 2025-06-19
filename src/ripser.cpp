@@ -47,6 +47,9 @@
 
 //#define USE_ROBINHOOD_HASHMAP
 
+// ripserq: R package need not read files.
+//#define INPUT_TYPE
+
 // ripserq: R does not tolerate use of `exit()`.
 //#define COMMAND_LINE_IO
 
@@ -1041,6 +1044,9 @@ template <> std::vector<diameter_index_t> ripser<sparse_distance_matrix>::get_ed
 	return edges;
 }
 
+// ripserq: R package need not read files.
+#ifdef INPUT_TYPE
+
 enum file_format {
 	LOWER_DISTANCE_MATRIX,
 	UPPER_DISTANCE_MATRIX,
@@ -1201,6 +1207,9 @@ compressed_lower_distance_matrix read_file(std::istream& input_stream, const fil
 		return read_binary(input_stream);
 	}
 }
+
+// ripserq: R package need not read files.
+#endif
 
 // ripserq: R does not tolerate use of `exit()`.
 #ifdef COMMAND_LINE_IO
