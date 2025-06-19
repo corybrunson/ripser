@@ -39,7 +39,11 @@
 //#define USE_COEFFICIENTS
 
 //#define INDICATE_PROGRESS
-#define PRINT_PERSISTENCE_PAIRS
+// ripserq: Don't print pairs (accumulate them instead).
+//#define PRINT_PERSISTENCE_PAIRS
+
+// ripserq: Accumulate pairs in an object to be returned to the user.
+#define COLLECT_PERSISTENCE_PAIRS
 
 //#define USE_ROBINHOOD_HASHMAP
 
@@ -423,6 +427,9 @@ template <typename DistanceMatrix> class ripser {
 	typedef hash_map<entry_t, size_t, entry_hash, equal_index> entry_hash_map;
 
 public:
+  // ripserq: Accumulate pairs in an object to be returned to the user.
+  std::vector<std::vector<std::pair<value_t, value_t>>> persistence_pairs;
+  
 	ripser(DistanceMatrix&& _dist, index_t _dim_max, value_t _threshold, float _ratio,
 	       coefficient_t _modulus)
 	    : dist(std::move(_dist)), n(dist.size()),
@@ -626,6 +633,10 @@ public:
 		edges = get_edges();
 		std::sort(edges.rbegin(), edges.rend(),
 		          greater_diameter_or_smaller_index<diameter_index_t>);
+		// ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+		persistence_pairs.resize(dim_max + 1);
+#endif
 		std::vector<index_t> vertices_of_edge(2);
 		for (auto e : edges) {
 			get_simplex_vertices(get_index(e), 1, n, vertices_of_edge.rbegin());
@@ -637,6 +648,10 @@ public:
 				  // ripserq
 				  Rcpp::Rcout << " [0," << get_diameter(e) << ")" << std::endl;
 #endif
+				// ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+				if (get_diameter(e) != 0) persistence_pairs[0].emplace_back(0.0, get_diameter(e));
+#endif
 				dset.link(u, v);
 			} else if ((dim_max > 0) && (get_index(get_zero_apparent_cofacet(e, 1)) == -1))
 				columns_to_reduce.push_back(e);
@@ -647,6 +662,11 @@ public:
 		for (index_t i = 0; i < n; ++i)
 		  // ripserq
 		  if (dset.find(i) == i) Rcpp::Rcout << " [0, )" << std::endl;
+#endif
+		  // ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+    for (index_t i = 0; i < n; ++i)
+      if (dset.find(i) == i) persistence_pairs[0].emplace_back(0.0, std::numeric_limits<value_t>::infinity());
 #endif
 	}
 
@@ -743,6 +763,10 @@ public:
 	  // ripserq
 	  Rcpp::Rcout << "persistence intervals in dim " << dim << ":" << std::endl;
 #endif
+	  // ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+	  persistence_pairs.resize(std::max(persistence_pairs.size(), static_cast<size_t>(dim + 1)));
+#endif
 
 		compressed_sparse_matrix<diameter_entry_t> reduction_matrix;
 		
@@ -806,6 +830,12 @@ public:
 						  Rcpp::Rcout << " [" << diameter << "," << death << ")" << std::endl;
 						}
 #endif
+						// ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+						value_t death_diameter = get_diameter(pivot);
+						if (death_diameter > diameter * ratio)
+						  persistence_pairs[dim].emplace_back(diameter, death_diameter);
+#endif
 						pivot_column_index.insert({get_entry(pivot), index_column_to_reduce});
 
 						while (true) {
@@ -825,6 +855,10 @@ public:
 				  // ripserq
 				  Rcpp::Rcout << " [" << diameter << ", )" << std::endl;
 #endif
+				  // ripserq: Accumulate pairs in an object to be returned to the user.
+#ifdef COLLECT_PERSISTENCE_PAIRS
+				  persistence_pairs[dim].emplace_back(diameter, std::numeric_limits<value_t>::infinity());
+#endif
 					break;
 				}
 			}
@@ -837,7 +871,8 @@ public:
 
 	std::vector<diameter_index_t> get_edges();
 
-	void compute_barcodes() {
+	// ripserq: Accumulate pairs in an object to be returned to the user.
+	std::vector<std::vector<std::pair<value_t, value_t>>> compute_barcodes() {
 		std::vector<diameter_index_t> simplices, columns_to_reduce;
 
 		compute_dim_0_pairs(simplices, columns_to_reduce);
@@ -852,6 +887,9 @@ public:
 				assemble_columns_to_reduce(simplices, columns_to_reduce, pivot_column_index,
 				                           dim + 1);
 		}
+		
+		// ripserq: Accumulate pairs in an object to be returned to the user.
+		return persistence_pairs;
 	}
 };
 
@@ -1341,12 +1379,23 @@ Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector &dataset, int dim, double t
   coefficient_t coeff_p = static_cast<coefficient_t>(p);
   
   using RipserType = ripser<compressed_lower_distance_matrix>;
+  using PersistenceType = std::vector<std::vector<std::pair<value_t, value_t>>>;
   
   auto ripser_ptr = new RipserType(std::move(dist), idx_dim, val_thresh, ratio, coeff_p);
   Rcpp::XPtr<RipserType> ripser_obj(ripser_ptr, false);
   ripser_obj->compute_barcodes();
+  PersistenceType result = ripser_obj->persistence_pairs;
 
-  Rcpp::List output;
+  Rcpp::List output(result.size());
+  for (size_t d = 0; d < result.size(); ++d) {
+    const auto& pairs = result[d];
+    Rcpp::NumericMatrix mat(pairs.size(), 2);
+    for (size_t i = 0; i < pairs.size(); ++i) {
+      mat(i, 0) = pairs[i].first;
+      mat(i, 1) = pairs[i].second;
+    }
+    output[d] = mat;
+  }
 
   return output;
 }
