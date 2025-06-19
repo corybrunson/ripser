@@ -516,7 +516,8 @@ public:
 	};
 
 	diameter_entry_t get_zero_pivot_facet(const diameter_entry_t simplex, const index_t dim) {
-		// ripserq: rm `static`
+		// ripserq: Use of `static` variables induces an R end-of-program problem:
+		// https://github.com/Ripser/ripser/issues/55
 		simplex_boundary_enumerator facets(0, *this);
 		facets.set_simplex(simplex, dim);
 		while (facets.has_next()) {
@@ -527,7 +528,8 @@ public:
 	}
 
 	diameter_entry_t get_zero_pivot_cofacet(const diameter_entry_t simplex, const index_t dim) {
-		// ripserq: rm `static`
+	  // ripserq: Use of `static` variables induces an R end-of-program problem:
+	  // https://github.com/Ripser/ripser/issues/55
 		simplex_coboundary_enumerator cofacets(*this);
 		cofacets.set_simplex(simplex, dim);
 		while (cofacets.has_next()) {
@@ -683,7 +685,8 @@ public:
 	diameter_entry_t init_coboundary_and_get_pivot(const diameter_entry_t simplex,
 	                                               Column& working_coboundary, const index_t& dim,
 	                                               entry_hash_map& pivot_column_index) {
-	  // ripserq: rm `static`
+	  // ripserq: Use of `static` variables induces an R end-of-program problem:
+	  // https://github.com/Ripser/ripser/issues/55
 	  simplex_coboundary_enumerator cofacets(*this);
 		bool check_for_emergent_pair = true;
 		cofacet_entries.clear();
@@ -707,7 +710,8 @@ public:
 	template <typename Column>
 	void add_simplex_coboundary(const diameter_entry_t simplex, const index_t& dim,
 	                            Column& working_reduction_column, Column& working_coboundary) {
-	  // ripserq: rm `static`
+	  // ripserq: Use of `static` variables induces an R end-of-program problem:
+	  // https://github.com/Ripser/ripser/issues/55
 	  simplex_coboundary_enumerator cofacets(*this);
 		working_reduction_column.push(simplex);
 		cofacets.set_simplex(simplex, dim);
