@@ -2,3 +2,7 @@ DerivedData
 ripser.dSYM
 ripser
 ripser-coeff
+
+# ripserq
+.DS_Store
+.Rproj.user

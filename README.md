@@ -1,4 +1,14 @@
-# Ripser
+# `ripserq`
+
+This branch exists to maintain a minimal R package structure around the current version of Ripser, into which future upgrades will be merged.
+If and when experimental features are added, they will be maintained and combined in sub-branches of the form `ripserq-<feature(s)>`.
+The code will be minimally altered, most significantly (1) to toggle off C-only procedures like `main()` and (2) to ensure compatibility with R, the {Rcpp} interface, and the R package infrastructure.
+Stable versions of `ripserq` will then be used to upgrade the R package {ripserr}.
+
+The Ripser README is unaltered below.
+
+
+## Ripser
 
 Copyright © 2015–2021 [Ulrich Bauer].
 
