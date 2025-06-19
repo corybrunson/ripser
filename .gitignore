@@ -1,8 +1,11 @@
-DerivedData
-ripser.dSYM
-ripser
-ripser-coeff
-
-# ripserq
+# Mac
 .DS_Store
+
+# R project
 .Rproj.user
+.Rhistory
+
+# Rcpp
+*.o
+*.so
+*.dll
