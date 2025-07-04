@@ -51,13 +51,33 @@ ripserq:::ripser_cpp_dist(
   p = 2
 )
 
-# validate compatibility with 'dist' class
+# test edge case
 ripserq:::ripser_cpp_dist(
-  eurodist,
-  dim = 1, thresh = 5000, ratio = 1.0, p = 2
+  dist(matrix(c(0,0,0,1), ncol = 2)),
+  dim = 1, thresh = 1, ratio = 1, p = 2
 )
+\dontrun{
+ripserq:::ripser_cpp_dist(
+  dist(0),
+  dim = 1, thresh = 1, ratio = 1, p = 2
+)
+}
 
 # exposed R function with no explicit parameter settings
 ripser_dist(dist_vec)
+
+# validate compatibility with 'dist' class and different outputs
+ripser_dist(
+  UScitiesD,
+  max_dim = 1, thresh = 1000
+)
+ripser_dist(
+  UScitiesD,
+  max_dim = 1, thresh = 930
+)
+ripser_dist(
+  UScitiesD,
+  max_dim = 1, thresh = 800
+)
 
 }
