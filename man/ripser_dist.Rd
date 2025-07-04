@@ -33,6 +33,15 @@ result <- ripserq:::ripser_cpp_dist(
 )
 result
 
+# validate clustering (only 0-degree homology)
+ripserq:::ripser_cpp_dist(
+  dist_vec,
+  dim = 0,
+  thresh = Inf,
+  ratio = 1.0,
+  p = 2
+)
+
 # validate use of default threshold
 ripserq:::ripser_cpp_dist(
   dist_vec,
