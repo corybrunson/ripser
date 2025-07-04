@@ -668,8 +668,9 @@ public:
 #endif
 		  // ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
-    for (index_t i = 0; i < n; ++i)
-      if (dset.find(i) == i) persistence_pairs[0].emplace_back(0.0, std::numeric_limits<value_t>::infinity());
+    for (index_t i = 0; i < n - 1; ++i)
+      if (dset.find(i) == i) persistence_pairs[0].emplace_back(0.0, std::numeric_limits<value_t>::quiet_NaN());
+		if (dset.find(n - 1) == n - 1) persistence_pairs[0].emplace_back(0.0, std::numeric_limits<value_t>::infinity());
 #endif
 	}
 
@@ -860,7 +861,7 @@ public:
 #endif
 				  // ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
-				  persistence_pairs[dim].emplace_back(diameter, std::numeric_limits<value_t>::infinity());
+				  persistence_pairs[dim].emplace_back(diameter, std::numeric_limits<value_t>::quiet_NaN());
 #endif
 					break;
 				}
