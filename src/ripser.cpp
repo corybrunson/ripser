@@ -1403,8 +1403,14 @@ Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector &dataset, int dim, double t
     const auto& pairs = result[d];
     Rcpp::NumericMatrix mat(pairs.size(), 2);
     for (size_t i = 0; i < pairs.size(); ++i) {
-      mat(i, 0) = pairs[i].first;
-      mat(i, 1) = pairs[i].second;
+      if (std::isnan(pairs[i].first))
+        mat(i, 0) = NA_REAL;
+      else
+        mat(i, 0) = pairs[i].first;
+      if (std::isnan(pairs[i].second))
+        mat(i, 1) = NA_REAL;
+      else
+        mat(i, 1) = pairs[i].second;
     }
     output[d] = mat;
   }

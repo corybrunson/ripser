@@ -83,9 +83,6 @@ ripser_dist <- function(
     dim = max_dim, thresh = threshold, ratio = 1., p = 2L
   )
   
-  # convert not-a-number values to missing
-  ans <- lapply(ans, function(x) { x[is.nan(x)] <- NA_real_; x })
-  
   # return result
   ans
 }
