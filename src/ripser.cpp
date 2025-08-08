@@ -432,6 +432,7 @@ template <typename DistanceMatrix> class ripser {
 public:
   // ripserq: Accumulate pairs in an object to be returned to the user.
   std::vector<std::vector<std::pair<value_t, value_t>>> persistence_pairs;
+  Rcpp::List persistent_pairs;
   
 	ripser(DistanceMatrix&& _dist, index_t _dim_max, value_t _threshold, float _ratio,
 	       coefficient_t _modulus)
@@ -638,7 +639,9 @@ public:
 		          greater_diameter_or_smaller_index<diameter_index_t>);
 		// ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
-		persistence_pairs.resize(dim_max + 1);
+		// persistence_pairs.resize(dim_max + 1);
+		Rcpp::NumericVector persistent_births(0);
+		Rcpp::NumericVector persistent_deaths(0);
 #endif
 		std::vector<index_t> vertices_of_edge(2);
 		for (auto e : edges) {
@@ -653,7 +656,11 @@ public:
 #endif
 				// ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
-				if (get_diameter(e) != 0) persistence_pairs[0].emplace_back(0.0, get_diameter(e));
+				// if (get_diameter(e) != 0) persistence_pairs[0].emplace_back(0.0, get_diameter(e));
+				if (get_diameter(e) != 0) {
+				  persistent_births.push_back(0.0);
+				  persistent_deaths.push_back(get_diameter(e));
+				}
 #endif
 				dset.link(u, v);
 			} else if ((dim_max > 0) && (get_index(get_zero_apparent_cofacet(e, 1)) == -1))
@@ -670,8 +677,20 @@ public:
 #ifdef COLLECT_PERSISTENCE_PAIRS
     for (index_t i = 0; i < n - 1; ++i)
       // ripserq: `Rcpp::NA_REAL` for deaths that subceed threshold.
-      if (dset.find(i) == i) persistence_pairs[0].emplace_back(0.0, NA_REAL);
-		if (dset.find(n - 1) == n - 1) persistence_pairs[0].emplace_back(0.0, R_PosInf);
+      // if (dset.find(i) == i) persistence_pairs[0].emplace_back(0.0, NA_REAL);
+      if (dset.find(i) == i) {
+        persistent_births.push_back(0.0);
+        persistent_deaths.push_back(NA_REAL);
+      }
+		// if (dset.find(n - 1) == n - 1) persistence_pairs[0].emplace_back(0.0, R_PosInf);
+		if (dset.find(n - 1) == n - 1) {
+		  persistent_births.push_back(0.0);
+		  persistent_deaths.push_back(R_PosInf);
+		}
+		// ripserq
+		// Rcpp::NumericMatrix persistent_pairs_dim = Rcpp::cbind(persistent_births, persistent_deaths);
+		// persistent_pairs[0] = persistent_pairs_dim;
+		persistent_pairs.push_back(Rcpp::cbind(persistent_births, persistent_deaths));
 #endif
 	}
 
@@ -770,7 +789,9 @@ public:
 #endif
 	  // ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
-	  persistence_pairs.resize(std::max(persistence_pairs.size(), static_cast<size_t>(dim + 1)));
+	  // persistence_pairs.resize(std::max(persistence_pairs.size(), static_cast<size_t>(dim + 1)));
+	  Rcpp::NumericVector persistent_births(0);
+	  Rcpp::NumericVector persistent_deaths(0);
 #endif
 
 		compressed_sparse_matrix<diameter_entry_t> reduction_matrix;
@@ -838,8 +859,13 @@ public:
 						// ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
 						value_t death_diameter = get_diameter(pivot);
-						if (death_diameter > diameter * ratio)
-						  persistence_pairs[dim].emplace_back(diameter, death_diameter);
+						// if (death_diameter > diameter * ratio)
+						//   persistence_pairs[dim].emplace_back(diameter, death_diameter);
+						if (death_diameter > diameter * ratio) {
+						  persistent_births.push_back(diameter);
+						  persistent_deaths.push_back(death_diameter);
+						}
+						
 #endif
 						pivot_column_index.insert({get_entry(pivot), index_column_to_reduce});
 
@@ -863,12 +889,20 @@ public:
 				  // ripserq: Accumulate pairs in an object to be returned to the user.
 #ifdef COLLECT_PERSISTENCE_PAIRS
 				  // ripserq: `Rcpp::NA_REAL` for deaths that subceed threshold.
-				  persistence_pairs[dim].emplace_back(diameter, NA_REAL);
+				  // persistence_pairs[dim].emplace_back(diameter, NA_REAL);
+				  persistent_births.push_back(diameter);
+				  persistent_deaths.push_back(NA_REAL);
 #endif
 					break;
 				}
 			}
 		}
+#ifdef COLLECT_PERSISTENCE_PAIRS
+		// ripserq
+		// Rcpp::NumericMatrix persistent_pairs_dim = Rcpp::cbind(persistent_births, persistent_deaths);
+		// persistent_pairs[dim] = persistent_pairs_dim;
+		persistent_pairs.push_back(Rcpp::cbind(persistent_births, persistent_deaths));
+#endif
 #ifdef INDICATE_PROGRESS
 		// ripserq
 		Rcpp::Rcerr << clear_line << std::flush;
@@ -878,7 +912,8 @@ public:
 	std::vector<diameter_index_t> get_edges();
 
 	// ripserq: Accumulate pairs in an object to be returned to the user.
-	std::vector<std::vector<std::pair<value_t, value_t>>> compute_barcodes() {
+	// std::vector<std::vector<std::pair<value_t, value_t>>> compute_barcodes() {
+	Rcpp::List compute_barcodes() {
 		std::vector<diameter_index_t> simplices, columns_to_reduce;
 
 		compute_dim_0_pairs(simplices, columns_to_reduce);
@@ -895,7 +930,8 @@ public:
 		}
 		
 		// ripserq: Accumulate pairs in an object to be returned to the user.
-		return persistence_pairs;
+		// return persistence_pairs;
+		return persistent_pairs;
 	}
 };
 
@@ -1391,26 +1427,27 @@ Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector &dataset, int dim, double t
   coefficient_t coeff_p = static_cast<coefficient_t>(p);
   
   using RipserType = ripser<compressed_lower_distance_matrix>;
-  using PersistenceType = std::vector<std::vector<std::pair<value_t, value_t>>>;
+  // using PersistenceType = std::vector<std::vector<std::pair<value_t, value_t>>>;
   
   auto ripser_ptr = new RipserType(std::move(dist), idx_dim, val_thresh, ratio, coeff_p);
   Rcpp::XPtr<RipserType> ripser_obj(ripser_ptr, false);
   ripser_obj->compute_barcodes();
-  PersistenceType result = ripser_obj->persistence_pairs;
+  // PersistenceType result = ripser_obj->persistence_pairs;
 
-  Rcpp::List output(result.size());
-  for (size_t d = 0; d < result.size(); ++d) {
-    const auto& pairs = result[d];
-    Rcpp::NumericMatrix mat(pairs.size(), 2);
-    for (size_t i = 0; i < pairs.size(); ++i) {
-      mat(i, 0) = pairs[i].first;
-      if (std::isnan(pairs[i].second))
-        mat(i, 1) = NA_REAL;
-      else
-        mat(i, 1) = pairs[i].second;
-    }
-    output[d] = mat;
-  }
+  // Rcpp::List output(result.size());
+  // for (size_t d = 0; d < result.size(); ++d) {
+  //   const auto& pairs = result[d];
+  //   Rcpp::NumericMatrix mat(pairs.size(), 2);
+  //   for (size_t i = 0; i < pairs.size(); ++i) {
+  //     mat(i, 0) = pairs[i].first;
+  //     if (std::isnan(pairs[i].second))
+  //       mat(i, 1) = NA_REAL;
+  //     else
+  //       mat(i, 1) = pairs[i].second;
+  //   }
+  //   output[d] = mat;
+  // }
 
+  Rcpp::List output = ripser_obj->persistent_pairs;
   return output;
 }
