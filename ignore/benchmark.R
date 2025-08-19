@@ -78,6 +78,7 @@ list.files(path = "ignore", pattern = "benchmark\\-.*\\-[0-9]+\\.rds") |>
   print() -> bench_results
 
 # plot benchmark results
+test_n <- length(unique(bench_results$expression))
 bench_results |> 
   mutate(expression = fct_inorder(as.character(expression))) |> 
   mutate(across(c(median, mem_alloc), as.numeric)) |> 
@@ -86,7 +87,10 @@ bench_results |>
     names_to = "measure", values_to = "value"
   ) |> 
   ggplot(aes(x = subbranch, y = value)) +
-  facet_wrap(facets = vars(measure, expression), scales = "free_y") +
+  facet_wrap(
+    facets = vars(measure, expression),
+    ncol = test_n, scales = "free_y"
+  ) +
   # geom_col(aes(fill = subbranch)) +
   geom_boxplot(aes(color = subbranch)) +
   scale_y_log10() +
