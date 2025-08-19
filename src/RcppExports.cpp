@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // ripser_cpp_dist
-Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector& dataset, int dim, double thresh, float ratio, int p);
+Rcpp::List ripser_cpp_dist(const Rcpp::NumericVector& dataset, int dim, double thresh, double ratio, int p);
 RcppExport SEXP _ripserq_ripser_cpp_dist(SEXP datasetSEXP, SEXP dimSEXP, SEXP threshSEXP, SEXP ratioSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -19,7 +19,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type dataset(datasetSEXP);
     Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< double >::type thresh(threshSEXP);
-    Rcpp::traits::input_parameter< float >::type ratio(ratioSEXP);
+    Rcpp::traits::input_parameter< double >::type ratio(ratioSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
     rcpp_result_gen = Rcpp::wrap(ripser_cpp_dist(dataset, dim, thresh, ratio, p));
     return rcpp_result_gen;
