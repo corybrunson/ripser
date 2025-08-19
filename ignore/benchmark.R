@@ -1,3 +1,21 @@
+# This script benchmarks several variations of {ripserq} to record censored
+# death times as `NA_real_` rather than `Inf` or `NaN` or to use doubles rather
+# than floats to store distance measurements. They work as follows:
+
+# `ripserq`, e472dfb7bc5e6da96987987c0cdd989717355b0f:
+# no correction; reported as `Inf`
+# `ripserq-double`, 2936f3b9455ff9f778b61b0216d7b902177fbfd3:
+# type distances as double rather than float
+# `ripserq-missing`, bfdfdfbd2569338dc511240b8106e9367736ff3d:
+# stored in `std::vector` as `NaN`, then converted to `NA_real_`
+# `ripserq-missing-alt`, 41689894007c5d91710f6ad1a7debd0b9d835386:
+# stored in `Rcpp::NumericMatrix` as `NA_REAL` (corresponding to `NA_real_`)
+
+# Benchmark tests on small-to-moderate data sets found
+# * negligible differences between float versus double
+# * significant efficiencies with using `NaN` then converting
+# * significant deficiencies to using `NumericMatrix` and not converting
+
 # prepare point clouds
 rp2_n <- here::here("src/examples/rp2_600.lower_distance_matrix.csv") |> 
   readLines() |> 
