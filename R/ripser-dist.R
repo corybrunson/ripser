@@ -67,6 +67,16 @@
 #'   max_dim = 1, thresh = 800
 #' )
 #' 
+#' # FIXME: inconsistent results using an alternative data set
+#' ripser_dist(
+#'   eurodist,
+#'   max_dim = 1, thresh = Inf
+#' )
+#' ripser_dist(
+#'   eurodist,
+#'   max_dim = 1, thresh = 600
+#' )
+#' 
 #' @export
 ripser_dist <- function(
     dataset,
