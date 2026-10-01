@@ -67,6 +67,16 @@
 #'   max_dim = 1, thresh = 800
 #' )
 #' 
+#' # FIXME: inconsistent results using an alternative data set
+#' ripser_dist(
+#'   eurodist,
+#'   max_dim = 1, thresh = Inf
+#' )
+#' ripser_dist(
+#'   eurodist,
+#'   max_dim = 1, thresh = 600
+#' )
+#' 
 #' @export
 ripser_dist <- function(
     dataset,
@@ -82,9 +92,6 @@ ripser_dist <- function(
     dataset,
     dim = max_dim, thresh = threshold, ratio = 1., p = 2L
   )
-  
-  # convert not-a-number values to missing
-  ans <- lapply(ans, function(x) { x[is.nan(x)] <- NA_real_; x })
   
   # return result
   ans
